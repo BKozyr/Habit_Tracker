@@ -1,0 +1,106 @@
+{% extends "habits/base.html" %}
+{% load crispy_forms_tags %}
+
+{% block title %}{{ habit.name }} | Habit Tracker{% endblock %}
+
+{% block content %}
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script src="https://unpkg.com/cal-heatmap/dist/cal-heatmap.min.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/cal-heatmap/dist/cal-heatmap.css">
+
+    <div class="row">
+        <div class="col-md-5 mb-4">
+            <h1 class="display-5">{{ habit.name }}</h1>
+            <p class="lead text-muted">
+                Cel: <strong>{{ habit.target_amount }} {{ habit.unit }}</strong> ({{ habit.get_frequency_display }})
+            </p>
+
+            <div class="card bg-light mt-4">
+                <div class="card-body">
+                    <h4 class="card-title">Zanotuj postęp</h4>
+
+                    <div class="alert alert-info py-2" role="alert" style="font-size: 0.9em;">
+                        💡 <strong>Wskazówka:</strong> Aby edytować wynik, wybierz z kalendarza datę istniejącego wpisu i podaj nową wartość. Aby go usunąć, wpisz <strong>0</strong>.
+                    </div>
+
+                    <form method="post">
+                        {% csrf_token %}
+                        {{ form|crispy }}
+                        <button type="submit" class="btn btn-success w-100 mt-2">Zapisz wynik</button>
+                    </form>
+                </div>
+            </div>
+
+            <div class="mt-4">
+                <a href="{% url 'habits:habit_edit' habit.slug %}" class="btn btn-outline-primary btn-sm">✏️ Edytuj nawyk</a>
+                <a href="{% url 'habits:habit_delete' habit.slug %}" class="btn btn-outline-danger btn-sm">🗑️ Usuń nawyk</a>
+            </div>
+        </div>
+
+        <div class="col-md-7">
+            <h3 class="mb-3">Historia wpisów:</h3>
+            <div class="list-group">
+                {% for record in habit.records.all %}
+                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                        <div>
+                            <strong>{{ record.date|date:"d M Y" }}</strong>
+                            <span class="text-muted ms-2">Zrobiono: {{ record.amount_done }} {{ habit.unit }}</span>
+
+                            {% if record.amount_done >= habit.target_amount %}
+                                <span class="badge bg-success ms-2">Cel osiągnięty</span>
+                            {% else %}
+                                <span class="badge bg-warning text-dark ms-2">W trakcie</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% empty %}
+                    <div class="list-group-item text-center text-muted py-4">
+                        Jeszcze nic tu nie ma. Dodaj pierwszy wynik!
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="col-12 mt-5">
+            <h3 class="mb-3">Kalendarz Aktywności</h3>
+            <div id="cal-heatmap"></div>
+        </div>
+
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const startDate = new Date();
+            startDate.setMonth(startDate.getMonth() - 4);
+            const targetAmount = parseFloat("{{ habit.target_amount }}") || 1
+            const dynamicDomain = [
+                targetAmount * 0.25,
+                targetAmount * 0.50,
+                targetAmount * 0.75,
+                targetAmount
+            ];
+            const cal = new CalHeatmap();
+            cal.paint({
+                itemSelector: '#cal-heatmap',
+                domain: { type: 'month' },
+                subDomain: { type: 'day', radius: 2 },
+                date: { start: startDate },
+                range: 5,
+                data: {
+                    source: '/api/heatmap/{{ habit.slug }}/',
+                    type: 'json',
+                    x: 'date',
+                    y: 'value'
+                },
+
+                scale: {
+                    color: {
+                        type: 'threshold',
+                        range: ['#ebedf0', '#9be9a8', '#40c463', '#30a14e', '#216e39'],
+                        domain: dynamicDomain
+                    }
+                }
+            });
+        });
+    </script>
+{% endblock %}
