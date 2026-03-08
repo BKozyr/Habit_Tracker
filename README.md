@@ -1,7 +1,6 @@
 # 📈 Habit Tracker (Django)
 
-Prosta i przejrzysta aplikacja do śledzenia nawyków. Głównym założeniem projektu było stworzenie wizualnego kalendarza aktywności (tzw. heatmapy), wzorowanego na popularnym wykresie kontrybucji z profilów na GitHubie.
-
+Prosta i przejrzysta aplikacja do śledzenia nawyków.
 Projekt powstał głównie jako poligon doświadczalny do nauki frameworka Django, optymalizacji zapytań do bazy danych (Django ORM) oraz integracji backendu z frontendowym kodem w JavaScript.
 
 ## 📸 Zrzuty ekranu
@@ -30,6 +29,7 @@ Projekt powstał głównie jako poligon doświadczalny do nauki frameworka Djang
 * Bootstrap 5 (do szybkiego, responsywnego ułożenia elementów)
 * JavaScript (Vanilla)
 * D3.js + Cal-Heatmap
+
 
 
 
